@@ -14,6 +14,8 @@ class AutocarTeleop : public rclcpp::Node {
  public:
   AutocarTeleop(const rclcpp::NodeOptions &options = rclcpp::NodeOptions());
 
-  private:
+ private:
+  void OnMainTimer();
+  rclcpp::TimerBase::SharedPtr main_timer_;
 };
-}
+}  // namespace xmotion

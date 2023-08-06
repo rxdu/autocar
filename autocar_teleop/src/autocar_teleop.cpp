@@ -11,7 +11,17 @@
 
 namespace xmotion {
 AutocarTeleop::AutocarTeleop(const rclcpp::NodeOptions &options)
-: rclcpp::Node("publisher_node", options) {
+    : rclcpp::Node("autocar_teleop_node", options) {
+  RCLCPP_INFO(this->get_logger(), "Creating AutocarTeleop node ...");
 
-}        
+  main_timer_ =
+      this->create_wall_timer(std::chrono::milliseconds(20),
+                              std::bind(&AutocarTeleop::OnMainTimer, this));
+
+  RCLCPP_INFO(this->get_logger(), "AutocarTeleop node has been created.");
 }
+
+void AutocarTeleop::OnMainTimer() {
+  RCLCPP_INFO(this->get_logger(), "Hello World!");
+}
+}  // namespace xmotion
