@@ -15,6 +15,25 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
     ## arguments
+    declear_joystick_index = DeclareLaunchArgument(
+        'joystick_index',
+        default_value='0',
+        description='Joystick index')
+
+    declear_vesc_can_if_name = DeclareLaunchArgument(
+        'vesc_can_if_name',
+        default_value='can0',
+        description='VESC CAN interface name')
+
+    declear_vesc_id = DeclareLaunchArgument(
+        "vesc_id",
+        default_value="0x68",
+        description="VESC ID")
+
+    declear_cmd_topic_name = DeclareLaunchArgument(
+        "cmd_topic_name",
+        default_value="/cmd_vel",
+        description="Command topic name")
 
     ## local variables
     map_path = PathJoinSubstitution([
@@ -56,13 +75,6 @@ def generate_launch_description():
     #     }.items())
     #
 
-    start_js_teleop_node = Node(
-        package='autocar_teleop',
-        executable='js_teleop',
-        name='autocar_js_teleop',
-        # arguments=['-d', rviz_config_file],
-        output='screen')
-
     # start_rviz_node = Node(
     #     package='rviz2',
     #     executable='rviz2',
@@ -70,8 +82,25 @@ def generate_launch_description():
     #     arguments=['-d', rviz_config_file],
     #     output='screen')
 
+    start_js_teleop_node = Node(
+        package='autocar_teleop',
+        executable='js_teleop',
+        name='autocar_js_teleop',
+        # arguments=['-d', rviz_config_file],
+        output='screen',
+        parameters=[
+            {"joystick_index": LaunchConfiguration("joystick_index"),
+             "vesc_can_if_name": LaunchConfiguration("vesc_can_if_name"),
+             "vesc_id": LaunchConfiguration("vesc_id"),
+             "cmd_topic_name": LaunchConfiguration("cmd_topic_name")}
+        ])
+
     ## LaunchDescription
     return LaunchDescription([
+        declear_joystick_index,
+        declear_vesc_can_if_name,
+        declear_vesc_id,
+        declear_cmd_topic_name,
         # launch_py_launch
         # launch_xml_launch,
         # start_rviz_node

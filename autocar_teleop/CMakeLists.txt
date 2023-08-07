@@ -20,8 +20,7 @@ find_package(tf2_geometry_msgs REQUIRED)
 find_package(xmotion REQUIRED)
 
 add_library(autocar_teleop SHARED
-        src/autocar_teleop.cpp
-        src/joystick_teleop.cpp)
+        src/autocar_js_teleop.cpp)
 ament_target_dependencies(autocar_teleop
         rclcpp rclcpp_components
         std_msgs geometry_msgs
@@ -35,7 +34,7 @@ target_include_directories(autocar_teleop PUBLIC
         $<INSTALL_INTERFACE:include> PRIVATE src)
 
 rclcpp_components_register_node(autocar_teleop
-        PLUGIN "xmotion::AutocarTeleop"
+        PLUGIN "xmotion::AutocarJsTeleop"
         EXECUTABLE js_teleop)
 
 if (BUILD_TESTING)
