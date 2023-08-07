@@ -8,6 +8,7 @@
  */
 
 #include "rclcpp/rclcpp.hpp"
+#include "std_msgs/msg/string.hpp"
 
 namespace xmotion {
 class AutocarTeleop : public rclcpp::Node {
@@ -17,5 +18,7 @@ class AutocarTeleop : public rclcpp::Node {
  private:
   void OnMainTimer();
   rclcpp::TimerBase::SharedPtr main_timer_;
+
+  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
 };
 }  // namespace xmotion
