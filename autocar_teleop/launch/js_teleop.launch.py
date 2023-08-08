@@ -17,12 +17,12 @@ def generate_launch_description():
     ## arguments
     declear_joystick_index = DeclareLaunchArgument(
         'joystick_index',
-        default_value='0',
+        default_value='19',
         description='Joystick index')
 
     declear_vesc_can_if_name = DeclareLaunchArgument(
         'vesc_can_if_name',
-        default_value='can0',
+        default_value='vcan0',
         description='VESC CAN interface name')
 
     declear_vesc_id = DeclareLaunchArgument(
@@ -34,6 +34,41 @@ def generate_launch_description():
         "cmd_topic_name",
         default_value="/cmd_vel",
         description="Command topic name")
+
+    declear_neutral_steer_angle = DeclareLaunchArgument(
+        "neutral_steer_angle",
+        default_value="0.5",
+        description="Neutral steer angle")
+
+    declare_max_steer_angle = DeclareLaunchArgument(
+        "max_steer_angle",
+        default_value="1.0",
+        description="Max steer angle")
+
+    declare_min_steer_angle = DeclareLaunchArgument(
+        "min_steer_angle",
+        default_value="0.0",
+        description="Min steer angle")
+
+    declare_steer_angle_deadzone = DeclareLaunchArgument(
+        "steer_angle_deadzone",
+        default_value="0.05",
+        description="Steer angle deadzone")
+
+    declare_max_motor_rpm = DeclareLaunchArgument(
+        "max_motor_rpm",
+        default_value="3000",
+        description="Max motor rpm")
+
+    declare_min_motor_rpm = DeclareLaunchArgument(
+        "min_motor_rpm",
+        default_value="-2000",
+        description="Min motor rpm")
+
+    declare_motor_rpm_deadzone = DeclareLaunchArgument(
+        "motor_rpm_deadzone",
+        default_value="50",
+        description="Motor rpm deadzone")
 
     ## local variables
     map_path = PathJoinSubstitution([
@@ -49,32 +84,6 @@ def generate_launch_description():
     ])
 
     ## actions
-    # launch_py_launch = IncludeLaunchDescription(
-    #     PythonLaunchDescriptionSource([
-    #         PathJoinSubstitution([
-    #             FindPackageShare('autocar_teleop'),
-    #             "launch",
-    #             "module_launch.launch.py"
-    #         ])
-    #     ]),
-    #     launch_arguments={
-    #         'start_rviz2': 'false'
-    #     }.items())
-
-    # launch_xml_launch = IncludeLaunchDescription(
-    #     FrontendLaunchDescriptionSource([
-    #         PathJoinSubstitution([
-    #             FindPackageShare('robot_nav'),
-    #             "launch",
-    #             'subsystem',
-    #             "map.launch.xml"
-    #         ])
-    #     ]),
-    #     launch_arguments={
-    #         'map_path': map_path,
-    #     }.items())
-    #
-
     # start_rviz_node = Node(
     #     package='rviz2',
     #     executable='rviz2',
@@ -86,13 +95,19 @@ def generate_launch_description():
         package='autocar_teleop',
         executable='js_teleop',
         name='autocar_js_teleop',
-        # arguments=['-d', rviz_config_file],
         output='screen',
         parameters=[
             {"joystick_index": LaunchConfiguration("joystick_index"),
              "vesc_can_if_name": LaunchConfiguration("vesc_can_if_name"),
              "vesc_id": LaunchConfiguration("vesc_id"),
-             "cmd_topic_name": LaunchConfiguration("cmd_topic_name")}
+             "cmd_topic_name": LaunchConfiguration("cmd_topic_name"),
+             "neutral_steer_angle": LaunchConfiguration("neutral_steer_angle"),
+             "steer_angle_deadzone": LaunchConfiguration("steer_angle_deadzone"),
+             "max_steer_angle": LaunchConfiguration("max_steer_angle"),
+             "min_steer_angle": LaunchConfiguration("min_steer_angle"),
+             "max_motor_rpm": LaunchConfiguration("max_motor_rpm"),
+             "min_motor_rpm": LaunchConfiguration("min_motor_rpm"),
+             "motor_rpm_deadzone": LaunchConfiguration("motor_rpm_deadzone")}
         ])
 
     ## LaunchDescription
@@ -101,8 +116,13 @@ def generate_launch_description():
         declear_vesc_can_if_name,
         declear_vesc_id,
         declear_cmd_topic_name,
-        # launch_py_launch
-        # launch_xml_launch,
+        declear_neutral_steer_angle,
+        declare_max_steer_angle,
+        declare_min_steer_angle,
+        declare_steer_angle_deadzone,
+        declare_max_motor_rpm,
+        declare_min_motor_rpm,
+        declare_motor_rpm_deadzone,
         # start_rviz_node
         start_js_teleop_node
     ])

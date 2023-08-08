@@ -20,6 +20,7 @@ find_package(tf2_geometry_msgs REQUIRED)
 find_package(xmotion REQUIRED)
 
 add_library(autocar_teleop SHARED
+        src/control_arbitrator.cpp
         src/autocar_js_teleop.cpp)
 ament_target_dependencies(autocar_teleop
         rclcpp rclcpp_components

@@ -44,7 +44,17 @@ void AutocarJsTeleop::LoadParameters() {
   this->declare_parameter("joystick_index", 0);
   this->declare_parameter("vesc_can_if_name", "can0");
   this->declare_parameter("vesc_id", 0x68);
+
   this->declare_parameter("cmd_topic_name", "cmd_vel");
+
+  this->declare_parameter("min_steer_angle", 0.0);
+  this->declare_parameter("max_steer_angle", 1.0);
+  this->declare_parameter("neutral_steer_angle", 0.5);
+  this->declare_parameter("steer_angle_deadzone", 0.05);
+
+  this->declare_parameter("min_motor_rpm", -2000);
+  this->declare_parameter("max_motor_rpm", 3000);
+  this->declare_parameter("motor_rpm_deadzone", 50);
 
   driver_config_.js_index =
       this->get_parameter("joystick_index").get_parameter_value().get<int>();
@@ -58,12 +68,39 @@ void AutocarJsTeleop::LoadParameters() {
                    .get_parameter_value()
                    .get<std::string>();
 
+  min_steer_angle_ = this->get_parameter("min_steer_angle")
+                         .get_parameter_value()
+                         .get<double>();
+  max_steer_angle_ = this->get_parameter("max_steer_angle")
+                         .get_parameter_value()
+                         .get<double>();
+  neutral_steer_angle_ = this->get_parameter("neutral_steer_angle")
+                             .get_parameter_value()
+                             .get<double>();
+  steer_angle_deadzone_ = this->get_parameter("steer_angle_deadzone")
+                              .get_parameter_value()
+                              .get<double>();
+
+  min_motor_rpm_ =
+      this->get_parameter("min_motor_rpm").get_parameter_value().get<int>();
+  max_motor_rpm_ =
+      this->get_parameter("max_motor_rpm").get_parameter_value().get<int>();
+  motor_rpm_deadzone_ = this->get_parameter("motor_rpm_deadzone")
+                            .get_parameter_value()
+                            .get<int>();
+
   RCLCPP_INFO(this->get_logger(), "Joystick index: %d",
               driver_config_.js_index);
   RCLCPP_INFO(this->get_logger(), "VESC CAN interface name: %s",
               driver_config_.can_if_name.c_str());
   RCLCPP_INFO(this->get_logger(), "VESC ID: 0x%x", driver_config_.vesc_id);
   RCLCPP_INFO(this->get_logger(), "Cmd topic name: %s", cmd_topic_.c_str());
+  RCLCPP_INFO(this->get_logger(), "Min steer angle: %f", min_steer_angle_);
+  RCLCPP_INFO(this->get_logger(), "Max steer angle: %f", max_steer_angle_);
+  RCLCPP_INFO(this->get_logger(), "Neutral steer angle: %f",
+              neutral_steer_angle_);
+  RCLCPP_INFO(this->get_logger(), "Min motor RPM: %d", min_motor_rpm_);
+  RCLCPP_INFO(this->get_logger(), "Max motor RPM: %d", max_motor_rpm_);
 }
 
 bool AutocarJsTeleop::Initialize() {
@@ -104,13 +141,54 @@ void AutocarJsTeleop::TwistCallback(
 void AutocarJsTeleop::OnMainTimer() {
   //  RCLCPP_INFO(this->get_logger(), "Hello World!");
   if (joystick_->IsOpened()) {
-    std::cout << "Axes X: " << joystick_->GetAxisState(JsAxis::kX).value
-              << ", Axes Y: " << joystick_->GetAxisState(JsAxis::kY).value
-              << ", Axes Z: " << joystick_->GetAxisState(JsAxis::kZ).value
-              << ", Axes RX: " << joystick_->GetAxisState(JsAxis::kRX).value
-              << ", Axes RY: " << joystick_->GetAxisState(JsAxis::kRY).value
-              << ", Axes RZ: " << joystick_->GetAxisState(JsAxis::kRZ).value
-              << std::endl;
+    //    std::cout << "Axes X: " << joystick_->GetAxisState(JsAxis::kX).value
+    //              << ", Axes Y: " << joystick_->GetAxisState(JsAxis::kY).value
+    //              << ", Axes Z: " << joystick_->GetAxisState(JsAxis::kZ).value
+    //              << ", Axes RX: " <<
+    //              joystick_->GetAxisState(JsAxis::kRX).value
+    //              << ", Axes RY: " <<
+    //              joystick_->GetAxisState(JsAxis::kRY).value
+    //              << ", Axes RZ: " <<
+    //              joystick_->GetAxisState(JsAxis::kRZ).value
+    //              << std::endl;
+
+    // only allows RC control if deadman switch is on
+    if (joystick_->GetAxisState(JsAxis::kZ).value > 0) {
+      js_input_.deadman_switch = true;
+    } else {
+      js_input_.deadman_switch = false;
+    }
+
+    if (js_input_.deadman_switch) {
+      double motor_cmd = joystick_->GetAxisState(JsAxis::kY).value;
+      // push up js stick to go forward, js axis value is negative
+      if (motor_cmd <= 0.0) {
+        js_input_.speed_cmd = -motor_cmd * max_motor_rpm_;
+      } else {
+        js_input_.speed_cmd = motor_cmd * min_motor_rpm_;
+      }
+      if (std::abs(js_input_.speed_cmd) < motor_rpm_deadzone_) {
+        js_input_.speed_cmd = 0;
+      }
+
+      double servo_cmd = joystick_->GetAxisState(JsAxis::kRX).value;
+      if (servo_cmd >= 0.0) {
+        js_input_.steering_cmd =
+            neutral_steer_angle_ +
+            servo_cmd * (max_steer_angle_ - neutral_steer_angle_);
+      } else {
+        js_input_.steering_cmd =
+            neutral_steer_angle_ +
+            servo_cmd * (neutral_steer_angle_ - min_steer_angle_);
+      }
+      if (std::abs(js_input_.steering_cmd - neutral_steer_angle_) <
+          steer_angle_deadzone_) {
+        js_input_.steering_cmd = neutral_steer_angle_;
+      }
+    } else {
+      js_input_.speed_cmd = 0;
+      js_input_.steering_cmd = neutral_steer_angle_;
+    }
 
     if (joystick_->GetButtonState(JsButton::kMode)) {
       joystick_->SetJoystickRumble(0.1 * 0xFFFF, 0.5 * 0xFFFF);
@@ -118,12 +196,22 @@ void AutocarJsTeleop::OnMainTimer() {
       joystick_->SetJoystickRumble(0.0 * 0xFFFF, 0.0 * 0xFFFF);
     }
 
+    RCLCPP_INFO(this->get_logger(),
+                "Deadman switch: %d, Speed cmd: %d, Steering cmd: %f",
+                js_input_.deadman_switch, js_input_.speed_cmd,
+                js_input_.steering_cmd);
+
     // set control source
+    control_arbitrator_.UpdateRcInput(js_input_);
 
     // send command to vesc
-    if (control_source_ != ControlSource::kNone) {
-      //    vesc_->SetServo(0.5);
-    }
+    auto cmd = control_arbitrator_.GetCommand();
+    vesc_->SetSpeed(cmd.motor_rpm);
+    vesc_->SetServo(cmd.servo_angle);
+  } else {
+    // no control allowed for safety
+    vesc_->SetSpeed(0);
+    vesc_->SetServo(neutral_steer_angle_);
   }
 }
 }  // namespace xmotion
