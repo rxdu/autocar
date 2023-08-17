@@ -26,6 +26,18 @@ struct JoystickInput {
   bool deadman_switch;
 };
 
+struct CommandParams {
+  double min_steer_angle = 0.0;
+  double max_steer_angle = 1.0;
+  double neutral_steer_angle = 0.5;
+  double steer_angle_deadzone = 0.05;
+  int min_motor_rpm = -2000;
+  int max_motor_rpm = 3000;
+  int motor_rpm_deadzone = 50;
+  double rpm_ratio;
+  double steer_ratio;
+};
+
 struct VescCommand {
   int motor_rpm;
   double servo_angle;

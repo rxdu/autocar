@@ -70,6 +70,16 @@ def generate_launch_description():
         default_value="50",
         description="Motor rpm deadzone")
 
+    declare_rpm_ratio = DeclareLaunchArgument(
+        "rpm_ratio",
+        default_value="1000.0",
+        description="RPM ratio")
+
+    declare_steer_ratio = DeclareLaunchArgument(
+        "steer_ratio",
+        default_value="1.0",
+        description="Steer ratio")
+
     ## local variables
     map_path = PathJoinSubstitution([
         FindPackageShare('robot_map'),
@@ -107,7 +117,9 @@ def generate_launch_description():
              "min_steer_angle": LaunchConfiguration("min_steer_angle"),
              "max_motor_rpm": LaunchConfiguration("max_motor_rpm"),
              "min_motor_rpm": LaunchConfiguration("min_motor_rpm"),
-             "motor_rpm_deadzone": LaunchConfiguration("motor_rpm_deadzone")}
+             "motor_rpm_deadzone": LaunchConfiguration("motor_rpm_deadzone"),
+             "rpm_ratio": LaunchConfiguration("rpm_ratio"),
+             "steer_ratio": LaunchConfiguration("steer_ratio")}
         ])
 
     ## LaunchDescription
@@ -123,6 +135,8 @@ def generate_launch_description():
         declare_max_motor_rpm,
         declare_min_motor_rpm,
         declare_motor_rpm_deadzone,
+        declare_rpm_ratio,
+        declare_steer_ratio,
         # start_rviz_node
         start_js_teleop_node
     ])

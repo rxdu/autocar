@@ -16,7 +16,7 @@
 #include "motor_vesc/vesc_can_interface.hpp"
 
 #include "autocar_teleop/teleop_types.hpp"
-#include "autocar_teleop/control_arbitrator.hpp"
+#include "autocar_teleop/control_coordinator.hpp"
 
 namespace xmotion {
 class AutocarJsTeleop : public rclcpp::Node {
@@ -41,13 +41,7 @@ class AutocarJsTeleop : public rclcpp::Node {
   std::unique_ptr<VescCanInterface> vesc_;
 
   JoystickInput js_input_;
-  double min_steer_angle_ = 0.0;
-  double max_steer_angle_ = 1.0;
-  double neutral_steer_angle_ = 0.5;
-  double steer_angle_deadzone_ = 0.05;
-  int min_motor_rpm_ = -2000;
-  int max_motor_rpm_ = 3000;
-  int motor_rpm_deadzone_ = 50;
-  ControlArbitrator control_arbitrator_;
+  CommandParams cmd_params_;
+  std::unique_ptr<ControlCoordinator> control_coordinator_;
 };
 }  // namespace xmotion
