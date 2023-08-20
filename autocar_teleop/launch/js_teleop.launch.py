@@ -17,12 +17,12 @@ def generate_launch_description():
     ## arguments
     declear_joystick_index = DeclareLaunchArgument(
         'joystick_index',
-        default_value='19',
+        default_value='10',
         description='Joystick index')
 
     declear_vesc_can_if_name = DeclareLaunchArgument(
         'vesc_can_if_name',
-        default_value='vcan0',
+        default_value='can0',
         description='VESC CAN interface name')
 
     declear_vesc_id = DeclareLaunchArgument(
@@ -37,7 +37,7 @@ def generate_launch_description():
 
     declear_neutral_steer_angle = DeclareLaunchArgument(
         "neutral_steer_angle",
-        default_value="0.5",
+        default_value="0.6",
         description="Neutral steer angle")
 
     declare_max_steer_angle = DeclareLaunchArgument(
@@ -47,7 +47,7 @@ def generate_launch_description():
 
     declare_min_steer_angle = DeclareLaunchArgument(
         "min_steer_angle",
-        default_value="0.0",
+        default_value="0.2",
         description="Min steer angle")
 
     declare_steer_angle_deadzone = DeclareLaunchArgument(
@@ -57,7 +57,7 @@ def generate_launch_description():
 
     declare_max_motor_rpm = DeclareLaunchArgument(
         "max_motor_rpm",
-        default_value="3000",
+        default_value="4000",
         description="Max motor rpm")
 
     declare_min_motor_rpm = DeclareLaunchArgument(
