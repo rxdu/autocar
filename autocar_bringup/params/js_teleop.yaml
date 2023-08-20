@@ -1,0 +1,16 @@
+autocar_js_teleop:
+  ros__parameters:
+    joystick_index: 10
+    vesc_can_if_name: 'can0'
+    vesc_id: 0x68
+    cmd_topic_name: 'cmd_vel'
+    neutral_steer_angle: 0.6
+    max_steer_angle: 1.0
+    min_steer_angle: 0.2
+    steer_angle_deadzone: 0.05
+    max_motor_rpm: 4000
+    min_motor_rpm: -2000
+    motor_rpm_deadzone: 50
+    rpm_ratio: 1000.0
+    steer_ratio: 1.0
+
