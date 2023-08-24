@@ -1,5 +1,5 @@
 /*
- * control_coordinator.hpp
+ * control_handler.hpp
  *
  * Created on 8/8/23 10:35 PM
  * Description:
@@ -16,12 +16,12 @@
 #include "geometry_msgs/msg/twist.hpp"
 
 namespace xmotion {
-class ControlCoordinator {
+class ControlHandler {
   enum class ControlSource : int { kNone = 0, kJoystick, kCommand };
 
  public:
-  ControlCoordinator(CommandParams params);
-  ~ControlCoordinator() = default;
+  ControlHandler(CommandParams params);
+  ~ControlHandler() = default;
 
   void UpdateRcInput(const JoystickInput& input);
   void UpdateCommand(const geometry_msgs::msg::Twist& cmd);

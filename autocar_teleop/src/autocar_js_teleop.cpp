@@ -96,7 +96,7 @@ void AutocarJsTeleop::LoadParameters() {
       this->get_parameter("rpm_ratio").get_parameter_value().get<double>();
   cmd_params_.steer_ratio =
       this->get_parameter("steer_ratio").get_parameter_value().get<double>();
-  control_coordinator_ = std::make_unique<ControlCoordinator>(cmd_params_);
+  control_handler_ = std::make_unique<ControlHandler>(cmd_params_);
 
   RCLCPP_INFO(this->get_logger(), "Joystick index: %d",
               driver_config_.js_index);
@@ -133,23 +133,39 @@ bool AutocarJsTeleop::Initialize() {
 }
 
 void AutocarJsTeleop::VescStateUpdatedCallback(const StampedVescState& state) {
-  std::cout << "voltage input: " << state.state.voltage_input << ", "
-            << "temp pcb: " << state.state.temperature_pcb << ", "
-            << "current motor: " << state.state.current_motor << ", "
-            << "current input: " << state.state.current_input << ", "
-            << "speed: " << state.state.speed << ", "
-            << "duty cycle: " << state.state.duty_cycle << ", "
-            << "charge drawn: " << state.state.charge_drawn << ", "
-            << "charge regen: " << state.state.charge_regen << ", "
-            << "charge drawn: " << state.state.energy_drawn << ", "
-            << "charge regen: " << state.state.energy_regen << ", "
-            << "displacement: " << state.state.displacement << ", "
-            << "dist traveled: " << state.state.distance_traveled << std::endl;
+//   std::cout << "voltage input: " << state.state.voltage_input << ", "
+//             << "temp pcb: " << state.state.temperature_pcb << ", "
+//             << "current motor: " << state.state.current_motor << ", "
+//             << "current input: " << state.state.current_input << ", "
+//             << "speed: " << state.state.speed << ", "
+//             << "duty cycle: " << state.state.duty_cycle << ", "
+        //     << "charge drawn: " << state.state.charge_drawn << ", "
+        //     << "charge regen: " << state.state.charge_regen << ", "
+        //     << "charge drawn: " << state.state.energy_drawn << ", "
+        //     << "charge regen: " << state.state.energy_regen << ", "
+        //     << "displacement: " << state.state.displacement << ", "
+        //     << "dist traveled: " << state.state.distance_traveled << std::endl;
+
+   static bool first_time = true;
+   if(first_time) {
+      first_time = false;
+      t_ = Clock::now();
+      return;
+   }
+   double dt = std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now() - t_).count() / 1000.0;
+   t_ = Clock::now();
+   double speed = state.state.speed * cmd_params_.rpm_ratio;
+   double steer_angle = active_cmd_.servo_angle * cmd_params_.steer_ratio;
+   robot_state_ = propagator_.Propagate(robot_state_, BicycleKinematics::control_type{speed, steer_angle}, 
+        0, dt, dt/10);
+
+   std::cout << "cmd: " << speed << ", " << steer_angle << " , "
+        << "odom: " << robot_state_[0] << ", " << robot_state_[1] << std::endl;
 }
 
 void AutocarJsTeleop::TwistCallback(
     const geometry_msgs::msg::Twist& msg) const {
-  control_coordinator_->UpdateCommand(msg);
+  control_handler_->UpdateCommand(msg);
   //  RCLCPP_INFO(this->get_logger(), "Cmd (linear_x, angular_z): %f, %f",
   //              msg.linear.x, msg.angular.z);
 }
@@ -206,21 +222,20 @@ void AutocarJsTeleop::OnMainTimer() {
     //                js_input_.steering_cmd);
 
     // set control source
-    control_coordinator_->UpdateRcInput(js_input_);
+    control_handler_->UpdateRcInput(js_input_);
 
     // send command to vesc
-    auto cmd = control_coordinator_->GetCommand();
-    vesc_->SetSpeed(cmd.motor_rpm);
-    vesc_->SetServo(cmd.servo_angle);
-
+    active_cmd_ = control_handler_->GetCommand();
     RCLCPP_INFO(this->get_logger(), "=> Motor RPM: %d, Servo angle: %f",
-                cmd.motor_rpm, cmd.servo_angle);
+                active_cmd_.motor_rpm, active_cmd_.servo_angle);
   } else {
     // no control allowed for safety
-    vesc_->SetSpeed(0);
-    vesc_->SetServo(cmd_params_.neutral_steer_angle);
+    active_cmd_.motor_rpm = 0;
+    active_cmd_.servo_angle = cmd_params_.neutral_steer_angle;    
     RCLCPP_INFO(this->get_logger(), "=> No RC connected, robot stopped.");
   }
+  vesc_->SetSpeed(active_cmd_.motor_rpm);
+  vesc_->SetServo(cmd_params_.neutral_steer_angle);
 }
 }  // namespace xmotion
 

@@ -20,7 +20,7 @@ find_package(tf2_geometry_msgs REQUIRED)
 find_package(xmotion REQUIRED)
 
 add_library(autocar_teleop SHARED
-        src/control_coordinator.cpp
+        src/control_handler.cpp
         src/autocar_js_teleop.cpp)
 ament_target_dependencies(autocar_teleop
         rclcpp rclcpp_components
@@ -29,7 +29,8 @@ ament_target_dependencies(autocar_teleop
 target_link_libraries(autocar_teleop
         xmotion::interface
         xmotion::input_joystick
-        xmotion::motor_vesc)
+        xmotion::motor_vesc
+        xmotion::control)
 target_include_directories(autocar_teleop PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include> PRIVATE src)

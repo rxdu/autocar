@@ -1,5 +1,5 @@
 /*
- * control_coordinator.cpp
+ * control_handler.cpp
  *
  * Created on 8/8/23 10:35 PM
  * Description:
@@ -7,23 +7,23 @@
  * Copyright (c) 2023 Ruixiang Du (rdu)
  */
 
-#include "autocar_teleop/control_coordinator.hpp"
+#include "autocar_teleop/control_handler.hpp"
 
 namespace xmotion {
-xmotion::ControlCoordinator::ControlCoordinator(CommandParams params)
+xmotion::ControlHandler::ControlHandler(CommandParams params)
     : params_(params) {}
 
-void ControlCoordinator::UpdateRcInput(const JoystickInput& input) {
+void ControlHandler::UpdateRcInput(const JoystickInput& input) {
   std::lock_guard<std::mutex> lock(js_input_mutex_);
   joystick_input_ = input;
 }
 
-void ControlCoordinator::UpdateCommand(const geometry_msgs::msg::Twist& cmd) {
+void ControlHandler::UpdateCommand(const geometry_msgs::msg::Twist& cmd) {
   std::lock_guard<std::mutex> lock(twist_cmd_mutex_);
   twist_cmd_ = cmd;
 }
 
-VescCommand ControlCoordinator::ClampCommand(const VescCommand& cmd) {
+VescCommand ControlHandler::ClampCommand(const VescCommand& cmd) {
   VescCommand clamped_cmd = cmd;
   if (cmd.motor_rpm > params_.max_motor_rpm)
     clamped_cmd.motor_rpm = params_.max_motor_rpm;
@@ -36,7 +36,7 @@ VescCommand ControlCoordinator::ClampCommand(const VescCommand& cmd) {
   return clamped_cmd;
 }
 
-VescCommand ControlCoordinator::GetCommand() {
+VescCommand ControlHandler::GetCommand() {
   // make a local copy of the inputs
   JoystickInput js;
   {

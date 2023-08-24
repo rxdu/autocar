@@ -8,6 +8,7 @@
  */
 
 #include <memory>
+#include <chrono>
 
 #include "rclcpp/rclcpp.hpp"
 #include "geometry_msgs/msg/twist.hpp"
@@ -16,10 +17,16 @@
 #include "motor_vesc/vesc_can_interface.hpp"
 
 #include "autocar_teleop/teleop_types.hpp"
-#include "autocar_teleop/control_coordinator.hpp"
+#include "autocar_teleop/control_handler.hpp"
+
+#include "model/bicycle_model.hpp"
+#include "model/system_propagator.hpp"
 
 namespace xmotion {
 class AutocarJsTeleop : public rclcpp::Node {
+  using Clock = std::chrono::steady_clock;
+  using Timepoint = std::chrono::time_point<Clock>;
+
  public:
   AutocarJsTeleop(const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
 
@@ -42,6 +49,11 @@ class AutocarJsTeleop : public rclcpp::Node {
 
   JoystickInput js_input_;
   CommandParams cmd_params_;
-  std::unique_ptr<ControlCoordinator> control_coordinator_;
+  VescCommand active_cmd_;
+  std::unique_ptr<ControlHandler> control_handler_;
+
+  BicycleKinematics::state_type robot_state_ {0.0,0.0};
+  Timepoint t_;
+  SystemPropagator<BicycleKinematics> propagator_;
 };
 }  // namespace xmotion
