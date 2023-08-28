@@ -19,7 +19,7 @@
 #include "autocar_teleop/teleop_types.hpp"
 #include "autocar_teleop/control_handler.hpp"
 
-#include "model/bicycle_model.hpp"
+#include "model/bicycle_velocity_model.hpp"
 #include "model/system_propagator.hpp"
 
 namespace xmotion {
@@ -52,8 +52,8 @@ class AutocarJsTeleop : public rclcpp::Node {
   VescCommand active_cmd_;
   std::unique_ptr<ControlHandler> control_handler_;
 
-  BicycleKinematics::state_type robot_state_ {0.0,0.0};
+  BicycleVelocityKinematics::state_type robot_state_ {0.0,0.0};
   Timepoint t_;
-  SystemPropagator<BicycleKinematics> propagator_;
+  SystemPropagator<BicycleVelocityKinematics> propagator_;
 };
 }  // namespace xmotion

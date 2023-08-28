@@ -27,6 +27,7 @@ def generate_launch_description():
         executable='js_teleop',
         name='autocar_js_teleop',
         output='screen',
+        # prefix=['xterm -e gdb -ex run --args'],
         parameters=[teleop_config])
 
     ## LaunchDescription

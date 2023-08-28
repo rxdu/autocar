@@ -154,9 +154,11 @@ void AutocarJsTeleop::VescStateUpdatedCallback(const StampedVescState& state) {
    }
    double dt = std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now() - t_).count() / 1000.0;
    t_ = Clock::now();
+   if(dt == 0) return;
+   std::cout << "dt: " << dt << std::endl;
    double speed = state.state.speed * cmd_params_.rpm_ratio;
    double steer_angle = active_cmd_.servo_angle * cmd_params_.steer_ratio;
-   robot_state_ = propagator_.Propagate(robot_state_, BicycleKinematics::control_type{speed, steer_angle}, 
+   robot_state_ = propagator_.Propagate(robot_state_, BicycleVelocityKinematics::control_type(speed, steer_angle), 
         0, dt, dt/10);
 
    std::cout << "cmd: " << speed << ", " << steer_angle << " , "
@@ -226,8 +228,8 @@ void AutocarJsTeleop::OnMainTimer() {
 
     // send command to vesc
     active_cmd_ = control_handler_->GetCommand();
-    RCLCPP_INFO(this->get_logger(), "=> Motor RPM: %d, Servo angle: %f",
-                active_cmd_.motor_rpm, active_cmd_.servo_angle);
+//     RCLCPP_INFO(this->get_logger(), "=> Motor RPM: %d, Servo angle: %f",
+//                 active_cmd_.motor_rpm, active_cmd_.servo_angle);
   } else {
     // no control allowed for safety
     active_cmd_.motor_rpm = 0;
