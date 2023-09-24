@@ -11,6 +11,7 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 
 find_package(std_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 
 find_package(tf2 REQUIRED)
@@ -24,7 +25,7 @@ add_library(autocar_teleop SHARED
         src/autocar_js_teleop.cpp)
 ament_target_dependencies(autocar_teleop
         rclcpp rclcpp_components
-        std_msgs geometry_msgs
+        std_msgs nav_msgs geometry_msgs
         tf2 tf2_ros tf2_geometry_msgs)
 target_link_libraries(autocar_teleop
         xmotion::interface

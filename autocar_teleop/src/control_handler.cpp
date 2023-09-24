@@ -58,10 +58,7 @@ VescCommand ControlHandler::GetCommand() {
     vesc_cmd_.servo_angle = js.steering_cmd;
   } else {
     vesc_cmd_.motor_rpm = cmd.linear.x * params_.rpm_ratio;
-    vesc_cmd_.servo_angle =
-        params_.neutral_steer_angle +
-        (cmd.angular.z * params_.steer_ratio) *
-            (params_.neutral_steer_angle - params_.min_steer_angle);
+    vesc_cmd_.servo_angle = params_.neutral_steer_angle + cmd.angular.z * params_.steer_ratio;
   }
 
   auto clamped_cmd = ClampCommand(vesc_cmd_);

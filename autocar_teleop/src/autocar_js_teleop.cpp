@@ -13,7 +13,17 @@
 
 #include "input_joystick/joystick.hpp"
 
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+
 namespace xmotion {
+namespace {
+geometry_msgs::msg::Quaternion createQuaternionMsgFromYaw(double yaw) {
+  tf2::Quaternion q;
+  q.setRPY(0, 0, yaw);
+  return tf2::toMsg(q);
+}
+}
+
 AutocarJsTeleop::AutocarJsTeleop(const rclcpp::NodeOptions& options)
     : rclcpp::Node("autocar_teleop_node", options) {
   LoadParameters();
@@ -33,6 +43,9 @@ AutocarJsTeleop::AutocarJsTeleop(const rclcpp::NodeOptions& options)
       cmd_topic_, 10,
       std::bind(&AutocarJsTeleop::TwistCallback, this, std::placeholders::_1));
 
+  odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry>("odom", 10);
+
+  // start main timer
   main_timer_ =
       this->create_wall_timer(std::chrono::milliseconds(20),
                               std::bind(&AutocarJsTeleop::OnMainTimer, this));
@@ -155,21 +168,41 @@ void AutocarJsTeleop::VescStateUpdatedCallback(const StampedVescState& state) {
    double dt = std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now() - t_).count() / 1000.0;
    t_ = Clock::now();
    if(dt == 0) return;
-   std::cout << "dt: " << dt << std::endl;
-   double speed = state.state.speed * cmd_params_.rpm_ratio;
-   double steer_angle = active_cmd_.servo_angle * cmd_params_.steer_ratio;
-   robot_state_ = propagator_.Propagate(robot_state_, BicycleVelocityKinematics::control_type(speed, steer_angle), 
+//    std::cout << "dt: " << dt << std::endl;
+   double speed = state.state.speed / cmd_params_.rpm_ratio;
+   double steer_angle = (active_cmd_.servo_angle - cmd_params_.neutral_steer_angle) / cmd_params_.steer_ratio;
+   auto state_tf = propagator_.Propagate(robot_state_, RccarBicycleKinematics::control_type(speed, steer_angle), 
         0, dt, dt/10);
+  robot_state_ = state_tf;
 
-   std::cout << "cmd: " << speed << ", " << steer_angle << " , "
-        << "odom: " << robot_state_[0] << ", " << robot_state_[1] << std::endl;
+  RCLCPP_INFO(this->get_logger(), "speed: %f, angle: %f, odom: (%f, %f, %f)",
+        speed, steer_angle*180.0/M_PI, robot_state_[0], robot_state_[1], robot_state_[2]);
+
+  // publish odometry
+  auto current_time = this->get_clock()->now();
+  geometry_msgs::msg::Quaternion odom_quat =
+        createQuaternionMsgFromYaw(robot_state_[2]);
+
+  nav_msgs::msg::Odometry odom_msg;
+  odom_msg.header.stamp = current_time;
+  odom_msg.header.frame_id = "odom";
+  odom_msg.child_frame_id = "base_link";
+
+  odom_msg.pose.pose.position.x = robot_state_[0];
+  odom_msg.pose.pose.position.y = robot_state_[1];
+  odom_msg.pose.pose.orientation = odom_quat;
+
+  odom_msg.twist.twist.linear.x = speed;
+  odom_msg.twist.twist.angular.z = steer_angle;
+
+  odom_pub_->publish(odom_msg);
 }
 
 void AutocarJsTeleop::TwistCallback(
     const geometry_msgs::msg::Twist& msg) const {
   control_handler_->UpdateCommand(msg);
-  //  RCLCPP_INFO(this->get_logger(), "Cmd (linear_x, angular_z): %f, %f",
-  //              msg.linear.x, msg.angular.z);
+//   RCLCPP_INFO(this->get_logger(), "Twist command (linear_x, angular_z): %f, %f",
+//                msg.linear.x, msg.angular.z);
 }
 
 void AutocarJsTeleop::OnMainTimer() {
@@ -228,16 +261,18 @@ void AutocarJsTeleop::OnMainTimer() {
 
     // send command to vesc
     active_cmd_ = control_handler_->GetCommand();
-//     RCLCPP_INFO(this->get_logger(), "=> Motor RPM: %d, Servo angle: %f",
-//                 active_cmd_.motor_rpm, active_cmd_.servo_angle);
   } else {
     // no control allowed for safety
     active_cmd_.motor_rpm = 0;
     active_cmd_.servo_angle = cmd_params_.neutral_steer_angle;    
     RCLCPP_INFO(this->get_logger(), "=> No RC connected, robot stopped.");
   }
+
+//   RCLCPP_INFO(this->get_logger(), "=> Motor RPM: %d, Servo angle: %f",
+//         active_cmd_.motor_rpm, active_cmd_.servo_angle);
+
   vesc_->SetSpeed(active_cmd_.motor_rpm);
-  vesc_->SetServo(cmd_params_.neutral_steer_angle);
+  vesc_->SetServo(active_cmd_.servo_angle);
 }
 }  // namespace xmotion
 

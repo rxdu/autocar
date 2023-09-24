@@ -11,6 +11,6 @@ autocar_js_teleop:
     max_motor_rpm: 4000
     min_motor_rpm: -2000
     motor_rpm_deadzone: 50
-    rpm_ratio: 1000.0
+    rpm_ratio: 1565.0
     steer_ratio: 1.0
 

@@ -11,6 +11,7 @@
 #include <chrono>
 
 #include "rclcpp/rclcpp.hpp"
+#include "nav_msgs/msg/odometry.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 
 #include "interface/driver/joystick_interface.hpp"
@@ -19,7 +20,7 @@
 #include "autocar_teleop/teleop_types.hpp"
 #include "autocar_teleop/control_handler.hpp"
 
-#include "model/bicycle_velocity_model.hpp"
+#include "autocar_teleop/rccar_bicycle_model.hpp"
 #include "model/system_propagator.hpp"
 
 namespace xmotion {
@@ -40,6 +41,7 @@ class AutocarJsTeleop : public rclcpp::Node {
 
   rclcpp::TimerBase::SharedPtr main_timer_;
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_sub_;
+  rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
 
   std::string cmd_topic_;
 
@@ -52,8 +54,8 @@ class AutocarJsTeleop : public rclcpp::Node {
   VescCommand active_cmd_;
   std::unique_ptr<ControlHandler> control_handler_;
 
-  BicycleVelocityKinematics::state_type robot_state_ {0.0,0.0};
+  RccarBicycleKinematics::state_type robot_state_ {0.0,0.0,0.0};
   Timepoint t_;
-  SystemPropagator<BicycleVelocityKinematics> propagator_;
+  SystemPropagator<RccarBicycleKinematics> propagator_;
 };
 }  // namespace xmotion
