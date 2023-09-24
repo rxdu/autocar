@@ -35,6 +35,21 @@ def generate_launch_description():
         default_value="/cmd_vel",
         description="Command topic name")
 
+    declare_odom_topic_name = DeclareLaunchArgument(
+        "odom_topic_name",
+        default_value="odom",
+        description="Odometry topic name")
+
+    declare_odom_frame_id = DeclareLaunchArgument(
+        "odom_frame_id",
+        default_value="odom",
+        description="Odometry frame id")
+    
+    declare_base_frame_id = DeclareLaunchArgument(
+        "base_frame_id",
+        default_value="base_link",
+        description="Base frame id")
+
     declear_neutral_steer_angle = DeclareLaunchArgument(
         "neutral_steer_angle",
         default_value="0.6",
@@ -111,6 +126,9 @@ def generate_launch_description():
              "vesc_can_if_name": LaunchConfiguration("vesc_can_if_name"),
              "vesc_id": LaunchConfiguration("vesc_id"),
              "cmd_topic_name": LaunchConfiguration("cmd_topic_name"),
+             "odom_topic_name": LaunchConfiguration("odom_topic_name"),
+             "odom_frame_id": LaunchConfiguration("odom_frame_id"),
+             "base_frame_id": LaunchConfiguration("base_frame_id"),
              "neutral_steer_angle": LaunchConfiguration("neutral_steer_angle"),
              "steer_angle_deadzone": LaunchConfiguration("steer_angle_deadzone"),
              "max_steer_angle": LaunchConfiguration("max_steer_angle"),
@@ -128,6 +146,9 @@ def generate_launch_description():
         declear_vesc_can_if_name,
         declear_vesc_id,
         declear_cmd_topic_name,
+        declare_odom_topic_name,
+        declare_odom_frame_id,
+        declare_base_frame_id,
         declear_neutral_steer_angle,
         declare_max_steer_angle,
         declare_min_steer_angle,

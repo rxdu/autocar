@@ -59,6 +59,9 @@ void AutocarJsTeleop::LoadParameters() {
   this->declare_parameter("vesc_id", 0x68);
 
   this->declare_parameter("cmd_topic_name", "cmd_vel");
+  this->declare_parameter("odom_topic_name", "odom");
+  this->declare_parameter("odom_frame_name", "odom");
+  this->declare_parameter("base_frame_name", "base_link");
 
   this->declare_parameter("min_steer_angle", 0.0);
   this->declare_parameter("max_steer_angle", 1.0);
@@ -83,6 +86,15 @@ void AutocarJsTeleop::LoadParameters() {
   cmd_topic_ = this->get_parameter("cmd_topic_name")
                    .get_parameter_value()
                    .get<std::string>();
+  odom_topic_ = this->get_parameter("odom_topic_name")
+                  .get_parameter_value()
+                  .get<std::string>();
+  odom_frame_ = this->get_parameter("odom_frame_id")
+                  .get_parameter_value()
+                  .get<std::string>();
+  base_frame_ = this->get_parameter("base_frame_id")
+                  .get_parameter_value()
+                  .get<std::string>();
 
   cmd_params_.min_steer_angle = this->get_parameter("min_steer_angle")
                                     .get_parameter_value()
@@ -109,7 +121,10 @@ void AutocarJsTeleop::LoadParameters() {
       this->get_parameter("rpm_ratio").get_parameter_value().get<double>();
   cmd_params_.steer_ratio =
       this->get_parameter("steer_ratio").get_parameter_value().get<double>();
+
   control_handler_ = std::make_unique<ControlHandler>(cmd_params_);
+
+
 
   RCLCPP_INFO(this->get_logger(), "Joystick index: %d",
               driver_config_.js_index);
@@ -117,6 +132,9 @@ void AutocarJsTeleop::LoadParameters() {
               driver_config_.can_if_name.c_str());
   RCLCPP_INFO(this->get_logger(), "VESC ID: 0x%x", driver_config_.vesc_id);
   RCLCPP_INFO(this->get_logger(), "Cmd topic name: %s", cmd_topic_.c_str());
+  RCLCPP_INFO(this->get_logger(), "Odom topic name: %s", odom_topic_.c_str());
+  RCLCPP_INFO(this->get_logger(), "Odom frame id: %s", odom_frame_.c_str());
+  RCLCPP_INFO(this->get_logger(), "Base frame id: %s", base_frame_.c_str());
   RCLCPP_INFO(this->get_logger(), "Min steer angle: %f",
               cmd_params_.min_steer_angle);
   RCLCPP_INFO(this->get_logger(), "Max steer angle: %f",

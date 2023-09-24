@@ -44,6 +44,9 @@ class AutocarJsTeleop : public rclcpp::Node {
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
 
   std::string cmd_topic_;
+  std::string odom_topic_;
+  std::string odom_frame_;
+  std::string base_frame_;
 
   DriverConfig driver_config_;
   std::unique_ptr<JoystickInterface> joystick_;
