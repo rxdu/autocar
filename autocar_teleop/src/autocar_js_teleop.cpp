@@ -60,8 +60,8 @@ void AutocarJsTeleop::LoadParameters() {
 
   this->declare_parameter("cmd_topic_name", "cmd_vel");
   this->declare_parameter("odom_topic_name", "odom");
-  this->declare_parameter("odom_frame_name", "odom");
-  this->declare_parameter("base_frame_name", "base_link");
+  this->declare_parameter("odom_frame_id", "odom");
+  this->declare_parameter("base_frame_id", "base_link");
 
   this->declare_parameter("min_steer_angle", 0.0);
   this->declare_parameter("max_steer_angle", 1.0);
@@ -188,7 +188,7 @@ void AutocarJsTeleop::VescStateUpdatedCallback(const StampedVescState& state) {
    if(dt == 0) return;
 //    std::cout << "dt: " << dt << std::endl;
    double speed = state.state.speed / cmd_params_.rpm_ratio;
-   double steer_angle = (active_cmd_.servo_angle - cmd_params_.neutral_steer_angle) / cmd_params_.steer_ratio;
+   double steer_angle = - (active_cmd_.servo_angle - cmd_params_.neutral_steer_angle) / cmd_params_.steer_ratio;
    auto state_tf = propagator_.Propagate(robot_state_, RccarBicycleKinematics::control_type(speed, steer_angle), 
         0, dt, dt/10);
   robot_state_ = state_tf;
