@@ -1,112 +1,114 @@
 <?xml version="1.0"?>
 
-<robot name="autocar_wl_v1" 
-    xmlns:xacro="http://ros.org/wiki/xacro">
+<robot name="autocar_wl_v1"
+        xmlns:xacro="http://ros.org/wiki/xacro">
 
-    <xacro:arg name="robot_namespace" default="/" /> 
+        <xacro:arg name="robot_namespace" default="/" />
 
-    <xacro:macro name="autocar_wheel" params="wheel_prefix *joint_pose">
-        <link name="${wheel_prefix}_wheel_link">
-            <inertial>
-                <mass value="3" />
-                <origin xyz="0 0 0" />
-                <inertia ixx="0.7171" ixy="0" ixz="0" iyy="0.1361" iyz="0" izz="0.7171" />
-            </inertial>
-            <visual>
-                <origin xyz="0 0 0" rpy="0 0 0" />
-                <geometry>
-                    <cylinder radius="1" length="0.5"/>
-                    <!-- <mesh filename="package://autocar_description/meshes/wheel.dae" /> -->
-                </geometry>
-            </visual>
-            <collision>
-                <origin xyz="0 0 0" rpy="${M_PI/2} 0 0" />
-                <geometry>
-                    <cylinder length="${wheel_length}" radius="${wheel_radius}" />
-                </geometry>
-            </collision>
+        <!-- Variables -->
+        <xacro:property name="M_PI" value="3.14159"/>
+
+        <!-- Vehicle Geometries -->
+        <xacro:property name="base_x_size" value="0.38" />
+        <xacro:property name="base_y_size" value="0.25" />
+        <xacro:property name="base_z_size" value="0.18" />
+
+        <xacro:property name="wheelbase" value="0.29" />
+        <xacro:property name="track" value="0.21" />
+        <xacro:property name="wheel_vertical_offset" value="-0.0702" />
+
+        <xacro:property name="wheel_length" value="0.04" />
+        <xacro:property name="wheel_radius" value="0.04" />
+
+        <!-- Base link -->
+        <link name="base_link">
+                <visual>
+                        <origin xyz="0 0 0" rpy="0 0 0" />
+                        <geometry>
+                                <!-- <mesh filename="package://autocar_description/meshes/base_link.dae" /> -->
+                                <box size="${base_x_size} ${base_y_size} ${base_z_size}" />
+                        </geometry>
+                </visual>
+                <collision>
+                        <origin xyz="0 0 0.008" rpy="0 0 0" />
+                        <geometry>
+                                <box size="${base_x_size} ${base_y_size} ${base_z_size}"/>
+                        </geometry>
+                </collision>
         </link>
 
-        <joint name="${wheel_prefix}_wheel" type="continuous">
-            <parent link="base_link"/>
-            <child link="${wheel_prefix}_wheel_link"/>
-            <xacro:insert_block name="joint_pose"/>
-            <axis xyz="0 -1 0" rpy="0 0 0" />
+        <link name="base_footprint"/>
+
+        <joint name="base_footprint_joint" type="fixed">
+                <origin xyz="0 0 ${wheel_vertical_offset - wheel_radius}" rpy="0 0 0" />
+                <parent link="base_link" />
+                <child link="base_footprint" />
         </joint>
-    </xacro:macro>
 
-    <!-- Variables -->
-    <xacro:property name="M_PI" value="3.14159"/>
+        <link name="inertial_link">
+                <inertial>
+                        <mass value="40" />
+                        <origin xyz="0.0 0.0 0.0" />
+                        <inertia ixx="2.288641" ixy="0" ixz="0" iyy="5.103976" iyz="0" izz="3.431465" />
+                </inertial>
+        </link>
 
-    <!-- Vehicle Geometries -->
-    <xacro:property name="base_x_size" value="0.9250000" />
-    <xacro:property name="base_y_size" value="0.380000" />
-    <xacro:property name="base_z_size" value="0.210000" />
+        <joint name="inertial_joint" type="fixed">
+                <origin xyz="0 0 0" rpy="0 0 0" />
+                <parent link="base_link" />
+                <child link="inertial_link" />
+        </joint>
 
-    <xacro:property name="wheelbase" value="0.498" />
-    <xacro:property name="track" value="0.58306" />
-    <xacro:property name="wheel_vertical_offset" value="-0.0702" />
+        <!-- Wheels -->
+        <xacro:macro name="wl_wheel" params="wheel_prefix *joint_pose">
+                <link name="${wheel_prefix}_wheel_link">
+                        <inertial>
+                                <mass value="3" />
+                                <origin xyz="0 0 0" />
+                                <inertia ixx="0.7171" ixy="0" ixz="0" iyy="0.1361" iyz="0" izz="0.7171" />
+                        </inertial>
+                        <visual>
+                                <origin xyz="0 0 0" rpy="0 0 0" />
+                                <geometry>
+                                        <!-- <mesh filename="package://autocar_description/meshes/wl_wheel.dae" /> -->
+                                        <cylinder length="${wheel_length}" radius="${wheel_radius}" />
+                                </geometry>
+                        </visual>
+                        <collision>
+                                <origin xyz="0 0 0" rpy="${M_PI/2} 0 0" />
+                                <geometry>
+                                        <cylinder length="${wheel_length}" radius="${wheel_radius}" />
+                                </geometry>
+                        </collision>
+                </link>
 
-    <xacro:property name="wheel_length" value="1.1653e-01" />
-    <xacro:property name="wheel_radius" value="1.6459e-01" />
+                <joint name="${wheel_prefix}_wheel_joint" type="continuous">
+                        <parent link="base_link"/>
+                        <child link="${wheel_prefix}_wheel_link"/>
+                        <axis xyz="0 -1 0" rpy="0 0 0" />
+                        <xacro:insert_block name="joint_pose"/>
+                </joint>
+        </xacro:macro>
 
-    <!-- Base link -->
-    <link name="base_link">
-        <visual>
-            <origin xyz="0 0 0" rpy="0 0 0" />
-            <geometry>
-                <!-- <mesh filename="package://autocar_description/meshes/base_link.dae" /> -->
-                <box size="1 1 1" />
-            </geometry>
-        </visual>
-        <collision>
-            <origin xyz="0 0 0.008" rpy="0 0 0" />
-            <geometry>
-                <box size="${base_x_size} ${base_y_size} ${base_z_size}"/>
-            </geometry>
-        </collision>
-        <collision>
-            <origin xyz="0 0 ${base_z_size/6}" rpy="0 0 0" />
-            <geometry>
-                <box size="${base_x_size/6} ${base_y_size*1.65} ${base_z_size/3}"/>
-            </geometry>
-        </collision>
-    </link>
-
-    <link name="base_footprint"/>
-
-    <joint name="base_footprint_joint" type="fixed">
-        <origin xyz="0 0 ${wheel_vertical_offset - wheel_radius}" rpy="0 0 0" />
-        <parent link="base_link" />
-        <child link="base_footprint" />
-    </joint>
-
-    <link name="inertial_link">
-        <inertial>
-            <mass value="40" />
-            <origin xyz="0.0 0.0 0.0" />
-            <inertia ixx="2.288641" ixy="0" ixz="0" iyy="5.103976" iyz="0" izz="3.431465" />
-        </inertial>
-    </link>
-
-    <joint name="inertial_joint" type="fixed">
-        <origin xyz="0 0 0" rpy="0 0 0" />
-        <parent link="base_link" />
-        <child link="inertial_link" />
-    </joint>
-
-    <!-- Wheels -->
-    <xacro:autocar_wheel wheel_prefix="front_right">
-        <origin xyz="${wheelbase/2} ${-track/2} ${wheel_vertical_offset}" rpy="3.14 0 0" />
-    </xacro:autocar_wheel>
-    <xacro:autocar_wheel wheel_prefix="front_left">
-        <origin xyz="${wheelbase/2} ${track/2} ${wheel_vertical_offset}" rpy="0 0 0" />
-    </xacro:autocar_wheel>
-    <xacro:autocar_wheel wheel_prefix="rear_left">
-        <origin xyz="${-wheelbase/2} ${track/2} ${wheel_vertical_offset}" rpy="0 0 0" />
-    </xacro:autocar_wheel>
-    <xacro:autocar_wheel wheel_prefix="rear_right">
-        <origin xyz="${-wheelbase/2} ${-track/2} ${wheel_vertical_offset}" rpy="3.14 0 0" />
-    </xacro:autocar_wheel>
+        <xacro:wl_wheel wheel_prefix="front_right">
+                <joint_pose>
+                        <origin xyz="${wheelbase} -${track/2} ${wheel_vertical_offset}" rpy="0 0 0" />
+                </joint_pose>
+        </xacro:wl_wheel>
+        <xacro:wl_wheel wheel_prefix="front_left">
+                <joint_pose>
+                        <origin xyz="${wheelbase} ${track/2} ${wheel_vertical_offset}" rpy="0 0 0" />
+                </joint_pose>
+        </xacro:wl_wheel>
+        <xacro:wl_wheel wheel_prefix="rear_left">
+                <joint_pose>
+                        <origin xyz="0 ${track/2} ${wheel_vertical_offset}" rpy="0 0 0" />
+                </joint_pose>
+        </xacro:wl_wheel>
+        <xacro:wl_wheel wheel_prefix="rear_right">
+                <joint_pose>
+                        <origin xyz="0 -${track/2} ${wheel_vertical_offset}" rpy="3.14 0 0" />
+                </joint_pose>
+        </xacro:wl_wheel>
 
 </robot>
