@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+
+<robot name="autocar_wl_v1"
+        xmlns:xacro="http://ros.org/wiki/xacro">
+
+        <xacro:include filename="$(find autocar_description)/urdf/wl_rccar_v1.xacro" />
+
+        <!-- <link name="imu_link">
+                <visual>
+                        <origin xyz="0.0 0.0 0.0" />
+                        <geometry>
+                                <cylinder length="0.03" radius="0.02" />
+                        </geometry>
+                        <material name="red" />
+                </visual>
+        </link>
+
+        <joint name="imu_joint" type="fixed">
+                <parent link="base_link" />
+                <child link="imu_link" />
+                <origin xyz="0.32 0.0 0.18" rpy="0 0 0" />
+        </joint> -->
+
+        <link name="laser_link">
+                <visual>
+                        <origin xyz="0.0 0.0 0.0" />
+                        <geometry>
+                                <cylinder length="0.03" radius="0.02" />
+                        </geometry>
+                        <!-- <material name="red" /> -->
+                </visual>
+        </link>
+
+        <joint name="base_laser_joint" type="fixed">
+                <parent link="base_link" />
+                <child link="laser_link" />
+                <origin xyz="0.23 0.0 0.12" rpy="0 0 0" />
+        </joint>
+
+</robot>

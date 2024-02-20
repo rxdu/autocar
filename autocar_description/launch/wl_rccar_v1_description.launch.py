@@ -10,16 +10,16 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    model_name = 'autocar_wl_v1.urdf'
+    model_name = 'wl_rccar_v1.xacro'
     
     model_path = os.path.join(get_package_share_directory('autocar_description'), "urdf", model_name)
     print(model_path)
 
     return launch.LaunchDescription([
-        DeclareLaunchArgument('use_sim_time', default_value='false',
-            description='Use simulation clock if true'),
+        DeclareLaunchArgument('use_sim_time', default_value='false', description='Use simulation clock if true'),
         launch.actions.LogInfo(msg='use_sim_time: '),
         launch.actions.LogInfo(msg=launch.substitutions.LaunchConfiguration('use_sim_time')),
+        
         launch_ros.actions.Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',

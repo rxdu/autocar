@@ -70,7 +70,6 @@
                         <visual>
                                 <origin xyz="0 0 0" rpy="0 0 0" />
                                 <geometry>
-                                        <!-- <mesh filename="package://autocar_description/meshes/wl_wheel.dae" /> -->
                                         <cylinder length="${wheel_length}" radius="${wheel_radius}" />
                                 </geometry>
                         </visual>
